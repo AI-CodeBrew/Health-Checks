@@ -1,0 +1,62 @@
+name: Backend health checks
+
+on:
+  schedule:
+    # Every 10 minutes (UTC). GitHub can drift by several minutes under load.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check backend 1
+        env:
+          BACKEND_1_URL: ${{ secrets.BACKEND_1_URL }}
+          # BACKEND_1_TOKEN: ${{ secrets.BACKEND_1_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKEND_1_URL:-}" ]; then
+            echo "::error::BACKEND_1_URL secret is not set"
+            exit 1
+          fi
+
+          # Default (no auth):
+          CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 "$BACKEND_1_URL")
+
+          # If this backend needs auth, comment out the curl above and use:
+          # CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 \
+          #   -H "Authorization: Bearer ${BACKEND_1_TOKEN}" \
+          #   "$BACKEND_1_URL")
+
+          echo "Backend 1 status code: $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Backend 1 health check failed (HTTP $CODE)"
+            exit 1
+          fi
+
+      - name: Check backend 2
+        env:
+          BACKEND_2_URL: ${{ secrets.BACKEND_2_URL }}
+          # BACKEND_2_TOKEN: ${{ secrets.BACKEND_2_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKEND_2_URL:-}" ]; then
+            echo "::error::BACKEND_2_URL secret is not set"
+            exit 1
+          fi
+
+          # Default (no auth):
+          CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 "$BACKEND_2_URL")
+
+          # If this backend needs auth, comment out the curl above and use:
+          # CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 \
+          #   -H "Authorization: Bearer ${BACKEND_2_TOKEN}" \
+          #   "$BACKEND_2_URL")
+
+          echo "Backend 2 status code: $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Backend 2 health check failed (HTTP $CODE)"
+            exit 1
+          fi
