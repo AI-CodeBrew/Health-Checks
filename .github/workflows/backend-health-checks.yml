@@ -3,6 +3,7 @@ name: Backend health checks
 on:
   schedule:
     # Every 10 minutes (UTC). GitHub can drift by several minutes under load.
+    # Touching this file re-registers the schedule after first push.
     - cron: "*/10 * * * *"
   workflow_dispatch:
 
