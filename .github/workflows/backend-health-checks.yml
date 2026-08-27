@@ -61,3 +61,28 @@ jobs:
             echo "::error::Backend 2 health check failed (HTTP $CODE)"
             exit 1
           fi
+
+      - name: Check backend 3
+        env:
+          BACKEND_3_URL: ${{ secrets.BACKEND_3_URL }}
+          # BACKEND_3_TOKEN: ${{ secrets.BACKEND_3_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BACKEND_3_URL:-}" ]; then
+            echo "::error::BACKEND_3_URL secret is not set"
+            exit 1
+          fi
+
+          # Default (no auth):
+          CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 "$BACKEND_3_URL")
+
+          # If this backend needs auth, comment out the curl above and use:
+          # CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 \
+          #   -H "Authorization: Bearer ${BACKEND_3_TOKEN}" \
+          #   "$BACKEND_3_URL")
+
+          echo "Backend 3 status code: $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Backend 3 health check failed (HTTP $CODE)"
+            exit 1
+          fi
